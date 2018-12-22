@@ -1,0 +1,6 @@
+spring:
+  data:
+    cassandra:
+      keyspace-name: jvmfy
+      schema-action: create_if_not_exists
+      contact-points: ["localhost"]
