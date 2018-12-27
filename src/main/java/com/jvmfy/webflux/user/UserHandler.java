@@ -2,6 +2,7 @@ package com.jvmfy.webflux.user;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
@@ -11,6 +12,7 @@ import reactor.core.publisher.Mono;
 import java.util.UUID;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.web.reactive.function.BodyInserters.fromPublisher;
 import static org.springframework.web.reactive.function.server.ServerResponse.*;
 
 @Slf4j
@@ -38,8 +40,9 @@ public class UserHandler {
     Mono<ServerResponse> getAllUsers(ServerRequest request) {
         Flux<User> users = this.userRepository.findAll();
 
-        return users.collectList()
-                .flatMap(us -> ok().body(users, User.class))
+        return users
+                .collectList()
+                .flatMap(us -> ok().contentType(MediaType.APPLICATION_STREAM_JSON).body(users, User.class))
                 .switchIfEmpty(noContent().build());
     }
 }
