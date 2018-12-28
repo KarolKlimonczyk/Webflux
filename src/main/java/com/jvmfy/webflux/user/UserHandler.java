@@ -2,17 +2,18 @@ package com.jvmfy.webflux.user;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.util.function.Tuple2;
 
+import java.time.Duration;
 import java.util.UUID;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON;
-import static org.springframework.web.reactive.function.BodyInserters.fromPublisher;
+import static org.springframework.http.MediaType.TEXT_EVENT_STREAM;
 import static org.springframework.web.reactive.function.server.ServerResponse.*;
 
 @Slf4j
@@ -38,11 +39,18 @@ public class UserHandler {
     }
 
     Mono<ServerResponse> getAllUsers(ServerRequest request) {
-        Flux<User> users = this.userRepository.findAll();
+        return ok().contentType(TEXT_EVENT_STREAM).body(this.userRepository.findAll(), User.class)
+                .switchIfEmpty(noContent().build());
+    }
 
-        return users
-                .collectList()
-                .flatMap(us -> ok().contentType(MediaType.APPLICATION_STREAM_JSON).body(users, User.class))
+    Mono<ServerResponse> getAllUsersInterval(ServerRequest request) {
+        Flux<User> users = this.userRepository.findAll();
+        Flux<Long> interval = Flux.interval(Duration.ofSeconds(1));
+
+        return ok().contentType(TEXT_EVENT_STREAM).body(
+                Flux.zip(users, interval)
+                        .map(Tuple2::getT1)
+                        .doOnComplete(() -> log.info("Users stream completed")), User.class)
                 .switchIfEmpty(noContent().build());
     }
 }

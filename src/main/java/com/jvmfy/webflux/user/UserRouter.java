@@ -18,6 +18,7 @@ public class UserRouter {
     public RouterFunction<ServerResponse> route(UserHandler userHandler) {
         return RouterFunctions.route(POST("/api/user/new").and(accept(APPLICATION_JSON)), userHandler::createUser)
                 .andRoute(GET("/api/user/{userId}"), userHandler::getUser)
-                .andRoute(GET("/api/users"), userHandler::getAllUsers);
+                .andRoute(GET("/api/users"), userHandler::getAllUsers)
+                .andRoute(GET("/api/users/interval"), userHandler::getAllUsersInterval);
     }
 }
