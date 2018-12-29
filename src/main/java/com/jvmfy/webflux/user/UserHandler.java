@@ -1,5 +1,6 @@
 package com.jvmfy.webflux.user;
 
+import com.jvmfy.webflux.ascii.AsciiArtService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -22,6 +23,7 @@ import static org.springframework.web.reactive.function.server.ServerResponse.*;
 public class UserHandler {
 
     private final UserRepository userRepository;
+    private final AsciiArtService asciiArtService;
 
     Mono<ServerResponse> createUser(ServerRequest request) {
         return request.bodyToMono(UserDto.class)
@@ -51,6 +53,17 @@ public class UserHandler {
                 Flux.zip(users, interval)
                         .map(Tuple2::getT1)
                         .doOnComplete(() -> log.info("Users stream completed")), User.class)
+                .switchIfEmpty(noContent().build());
+    }
+
+    Mono<ServerResponse> getAllUsersNameAsAsciiArt(ServerRequest request) {
+        Flux<User> users = this.userRepository.findAll();
+        Flux<Long> interval = Flux.interval(Duration.ofSeconds(1));
+
+        return ok().contentType(TEXT_EVENT_STREAM).body(
+                Flux.zip(
+                        users.map(u -> this.asciiArtService.generateAsciiArt(u.getName())), interval)
+                        .map(Tuple2::getT1), String.class)
                 .switchIfEmpty(noContent().build());
     }
 }

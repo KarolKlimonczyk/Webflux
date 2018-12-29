@@ -14,6 +14,6 @@ public class WebfluxApplication {
         SpringApplication.run(WebfluxApplication.class, args);
 
         Client client = new Client(WebClient.create("http://localhost:8080"));
-        client.fetchUsers();
+        client.fetchUsersNamesAsAsciiArt();
     }
 }

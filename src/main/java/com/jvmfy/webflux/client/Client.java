@@ -25,4 +25,15 @@ public class Client {
                         error -> log.error("Cannot obtain users. {}", error),
                         () -> log.info("Stream completed"));
     }
+
+    public void fetchUsersNamesAsAsciiArt() {
+        webClient.get()
+                .uri("/api/users/ascii")
+                .accept(TEXT_EVENT_STREAM)
+                .exchange()
+                .flatMapMany(response -> response.bodyToFlux(String.class))
+                .subscribe(log::info,
+                        error -> log.error("Cannot obtain users. {}", error),
+                        () -> log.info("Stream completed"));
+    }
 }
